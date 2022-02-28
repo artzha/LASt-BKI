@@ -2,7 +2,7 @@
 
 This work extend Lu et. al's original paper on Semantic BKI to operate in dynamic environments.
 
-![BKI Original](./github/bki_original.jpg)
+![BKI Original](./github/bki_original.png)
 
 ## Getting Started
 
