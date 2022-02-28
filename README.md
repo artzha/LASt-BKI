@@ -1,6 +1,6 @@
 # BKI Neural Network
 
-This work extend Lu et. al's original paper on Semantic BKI to operate in dynamic environments.
+This work extends Lu et. al's original paper on Semantic BKI to operate in dynamic environments.
 
 ![BKI Original](./github/bki_original.png)
 
