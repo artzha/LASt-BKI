@@ -26,6 +26,7 @@ class SemanticKITTIData {
       , ds_resolution_(ds_resolution)
       , free_resolution_(free_resolution)
       , max_range_(max_range) {
+        std::cout << "Map topic " << map_topic << '\n';
         map_ = new semantic_bki::SemanticBKIOctoMap(resolution, block_depth, num_class, sf2, ell, prior, var_thresh, free_thresh, occupied_thresh);
         m_pub_ = new semantic_bki::MarkerArrayPub(nh_, map_topic, resolution);
       	init_trans_to_ground_ << 1, 0, 0, 0,

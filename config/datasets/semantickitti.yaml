@@ -10,7 +10,7 @@ ds_resolution: 0.1 # Downsampling factor
 
 # Information about range-finder data
 scan_num: 100 # How many scans to use
-max_range: -1 # Sensor max range (m)
+max_range: 30 # Sensor max range (m)
 
 # Dataset information
 input_data_prefix: velodyne/

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(semantic_bki)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -o3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -o3")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -144,11 +144,11 @@ add_executable(toy_example_node
   src/toy_example_node.cpp
 )
 
-add_executable(kitti_node
-  ${MAPPING_SOURCE_FILES}
-  ${COMMON_SOURCE_FILES}
-  src/kitti_node.cpp
-)
+# add_executable(kitti_node
+#   ${MAPPING_SOURCE_FILES}
+#   ${COMMON_SOURCE_FILES}
+#   src/kitti_node.cpp
+# )
 
 add_executable(semantickitti_node
   ${MAPPING_SOURCE_FILES}
@@ -166,10 +166,10 @@ target_link_libraries(toy_example_node
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(kitti_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBRARIES}
-)
+# target_link_libraries(kitti_node
+#   ${catkin_LIBRARIES}
+#   ${OpenCV_LIBRARIES}
+# )
 
 target_link_libraries(semantickitti_node
   ${catkin_LIBRARIES}

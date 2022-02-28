@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "semantickitti_node");
     ros::NodeHandle nh("~");
 
-    std::string map_topic("/occupied_cells_vis_array");
+    std::string map_topic("occupied_cells_vis_array");
     int block_depth = 4;
     double sf2 = 1.0;
     double ell = 1.0;
