@@ -9,7 +9,7 @@ This work extends Lu et. al's original paper on Semantic BKI to operate in dynam
 ### Building with catkin
 
 ```bash
-catkin_ws/src$ git clone https://github.com/ganlumomo/BKISemanticMapping
+catkin_ws/src$ git clone git@github.com:KingArthurZ3/BKINeuralNet.git
 catkin_ws/src$ cd ..
 catkin_ws$ catkin_make
 catkin_ws$ source ~/catkin_ws/devel/setup.bash
