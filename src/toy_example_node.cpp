@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
             semantic_bki::point3f p = it.get_loc();
             int semantics = it.get_node().get_semantics();
             std::vector<float> vars(num_class);
-            it.get_node().get_vars, SAMPLE_SIZE);
+            it.get_node().get_vars(vars, SAMPLE_SIZE);
             v_pub.insert_point3d_variance(p.x(), p.y(), p.z(), min_var, max_var, it.get_size(), vars[semantics]);
         }
     }
