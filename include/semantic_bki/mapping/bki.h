@@ -1,6 +1,8 @@
 #pragma once
 
 #include "bkioctomap.h"
+#include <stdlib.h>
+using namespace std;
 
 namespace semantic_bki {
 
@@ -104,6 +106,33 @@ namespace semantic_bki {
           }
       }
 
+      void predict_softmax(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars, int N) {
+        assert(xs.size() % dim == 0);
+        MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
+        assert(trained == true);
+        ybars.resize(_xs.rows(), vector<T>(nc, 0));
+
+        for (int r = 0; r < _cs.rows(); ++r) {
+          // cumulative distribution probability for each class
+          vector<T> sample_prob(y_vec[r]);
+          for (int j = 1; j < nc; ++j) {
+            sample_prob[j] += sample_prob[j - 1];
+          }
+          
+          for (int i = 0; i < N; ++i) {
+            float p = (rand() % 100) * 0.01;
+            for (int k = 0; k < nc; ++k) {
+              if (k == 0 && p <= sample_prob[k]) {
+                ybars[r][k] += 1;
+              }
+              else if (k != 0 && p <= sample_prob[k] && p > sample_prob[k - 1]) {
+                ybars[r][k] += 1;
+              }
+            }
+          }
+        }
+      }
+
         
     private:
         /*
@@ -162,7 +191,7 @@ namespace semantic_bki {
 
         MatrixXType x;   // temporary storage of training data
         MatrixYType y;   // temporary storage of training labels
-        std::vector<T> y_vec;
+        std::vector<vector<T>> y_vec;
 
         bool trained;    // true if bgkinference stored training data
     };

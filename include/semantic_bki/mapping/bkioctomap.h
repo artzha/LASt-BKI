@@ -8,6 +8,8 @@
 #include "bkiblock.h"
 #include "bkioctree_node.h"
 
+int SAMPLE_SIZE = 100;
+
 namespace semantic_bki {
 
     /// PCL PointCloud types as input

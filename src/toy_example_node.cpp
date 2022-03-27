@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
             int semantics = it.get_node().get_semantics();
             m_pub_csm.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), semantics, 0);
             std::vector<float> vars(num_class);
-            it.get_node().get_vars(vars);
+            it.get_node().get_vars(vars, SAMPLE_SIZE);
             if (vars[semantics] > max_var)
 		          max_var = vars[semantics];
 		        if (vars[semantics] < min_var)
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
             semantic_bki::point3f p = it.get_loc();
             int semantics = it.get_node().get_semantics();
             std::vector<float> vars(num_class);
-            it.get_node().get_vars(vars);
+            it.get_node().get_vars(vars, SAMPLE_SIZE);
             v_pub_csm.insert_point3d_variance(p.x(), p.y(), p.z(), min_var, max_var, it.get_size(), vars[semantics]);
         }
     }
@@ -147,7 +147,7 @@ int main(int argc, char **argv) {
             int semantics = it.get_node().get_semantics();
             m_pub.insert_point3d_semantics(p.x(), p.y(), p.z(), it.get_size(), semantics, 0);
             std::vector<float> vars(num_class);
-            it.get_node().get_vars(vars);
+            it.get_node().get_vars(vars, SAMPLE_SIZE);
             if (vars[semantics] > max_var)
 		          max_var = vars[semantics];
 		        if (vars[semantics] < min_var)
@@ -165,7 +165,7 @@ int main(int argc, char **argv) {
             semantic_bki::point3f p = it.get_loc();
             int semantics = it.get_node().get_semantics();
             std::vector<float> vars(num_class);
-            it.get_node().get_vars(vars);
+            it.get_node().get_vars, SAMPLE_SIZE);
             v_pub.insert_point3d_variance(p.x(), p.y(), p.z(), min_var, max_var, it.get_size(), vars[semantics]);
         }
     }

@@ -197,14 +197,16 @@ namespace semantic_bki {
               continue;
 
             vector<vector<float>> ybars;
-            bgk->second->predict_csm(xs, ybars);
+            // bgk->second->predict_csm(xs, ybars);
+            bgk->second->predict_softmax(xs, ybars, SAMPLE_SIZE);
+
 
             int j = 0;
             for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
                 SemanticOcTreeNode &node = leaf_it.get_node();
 
                 // Only need to update if kernel density total kernel density est > 0
-                node.update(ybars[j]);
+                node.update(ybars[j], N);
             }
 
         }
@@ -333,14 +335,15 @@ namespace semantic_bki {
                     continue;
 
                	vector<vector<float>> ybars;
-		            bgk->second->predict(xs, ybars);
+		        // bgk->second->predict(xs, ybars);
+                bgk->second->predict_softmax(xs, ybars, SAMPLE_SIZE);
 
                 int j = 0;
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
                     SemanticOcTreeNode &node = leaf_it.get_node();
                     // Only need to update if kernel density total kernel density est > 0
                     //if (kbar[j] > 0.0)
-                    node.update(ybars[j]);
+                    node.update(ybars[j], N);
                 }
             }
         }
