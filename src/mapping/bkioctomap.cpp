@@ -343,7 +343,7 @@ namespace semantic_bki {
                     SemanticOcTreeNode &node = leaf_it.get_node();
                     // Only need to update if kernel density total kernel density est > 0
                     //if (kbar[j] > 0.0)
-                    node.update(SAMPLE_SIZE);
+                    node.update(ybars[j], SAMPLE_SIZE);
                 }
             }
         }
