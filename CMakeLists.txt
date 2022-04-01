@@ -138,11 +138,11 @@ set(MAPPING_SOURCE_FILES
     src/mapping/bkioctree.cpp)
 
 
-add_executable(toy_example_node
-  ${MAPPING_SOURCE_FILES}
-  ${COMMON_SOURCE_FILES}
-  src/toy_example_node.cpp
-)
+# add_executable(toy_example_node
+#   ${MAPPING_SOURCE_FILES}
+#   ${COMMON_SOURCE_FILES}
+#   src/toy_example_node.cpp
+# )
 
 # add_executable(kitti_node
 #   ${MAPPING_SOURCE_FILES}

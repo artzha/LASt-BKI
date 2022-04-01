@@ -27,15 +27,17 @@ void prediction_scan_listener(std_msgs::Float32MultiArray scan_msg)
   std::cout << "Received data of index: " << scan_msg.data.at(0) << std::endl;
   std::shared_ptr<PointXYZProbs> scan_ptr = \
     std::shared_ptr<PointXYZProbs>(new PointXYZProbs(NUM_CLASSES));
-
+  // TODO: FIX PROBS 2D VECTOR!!
   int frame_num   = int(scan_msg.data.at(0));
   int num_points  = int(scan_msg.data.at(1));
   int num_classes = int(scan_msg.data.at(2));
 
+  scan_ptr->frame_id = frame_num;
+
   int packet_sz = xyz_coord_sz + num_classes; // Size of each data packaet
   for(int packet_num = 0; packet_num < num_points; packet_num++)
   {
-    pcl::PointXYZL point;
+    pcl::PointXYZ point;
     int packet_curr_idx  = (packet_num * packet_sz) + frame_header_sz;
 
     // Add point xyz coords
@@ -47,7 +49,7 @@ void prediction_scan_listener(std_msgs::Float32MultiArray scan_msg)
     // Add pred probs for each class
     for (int class_idx = 0; class_idx < num_classes; ++class_idx) {
       int prob_idx = packet_curr_idx + xyz_coord_sz + class_idx;
-      scan_ptr->probs[class_idx] = scan_msg.data.at(prob_idx)
+      scan_ptr->probs[packet_num][class_idx] = scan_msg.data.at(prob_idx);
     }
   }
 
@@ -154,11 +156,11 @@ int main(int argc, char **argv) {
 
     while (1) {
       if (!scans_q.empty()) {
-        std::shared_ptr<PointXYZProbs> > scan = scans_q.front()
-        scans_q.
-        semantic_kitti_data.process_scan(scan, query, visualize);
+        std::shared_ptr<PointXYZProbs> scan = scans_q.front();
+        scans_q.pop();
+        std::string input_data_dir = dir + '/' + input_data_prefix;
+        semantic_kitti_data.process_scan(scan, input_data_dir, query, visualize);
         std::cout << "after while loop" << std::endl;
-        wait_for_new_softmax_data = true;
       }
       ros::spin();
     }

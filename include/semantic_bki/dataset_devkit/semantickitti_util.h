@@ -63,13 +63,15 @@ class SemanticKITTIData {
       }
     } 
 
-    bool process_scan(std::shared_ptr<PointXYZProbs> scan, bool query, bool visualize) {
+    bool process_scan(std::shared_ptr<PointXYZProbs> scan, std::string input_data_dir, bool query, bool visualize) {
       semantic_bki::point3f origin;
+      int scan_id = scan->frame_id;
 
       char scan_id_c[256];
       sprintf(scan_id_c, "%06d", scan_id);
+      std::string scan_name = std::string(scan_id_c) + ".bin";
 
-      pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, label_name);
+      pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
       Eigen::Matrix4d transform = lidar_poses_[scan_id];
       Eigen::Matrix4d calibration;
       
@@ -92,16 +94,17 @@ class SemanticKITTIData {
                         0                ,  0                ,  0                ,  1.000000000000000;
       
       Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
-      pcl::transformPointCloud (*cloud, *cloud, new_transform);
+      pcl::transformPointCloud (cloud, cloud, new_transform);
       origin.x() = transform(0, 3);
       origin.y() = transform(1, 3);
       origin.z() = transform(2, 3);
-      map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
+
+      map_->insert_pointcloud(scan, origin, ds_resolution_, free_resolution_, max_range_);
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
       
       if (query) {
         for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
-        query_scan(input_data_dir, query_id);
+          query_scan(scan, input_data_dir, query_id);
       }
 
       if (visualize)
@@ -126,13 +129,14 @@ class SemanticKITTIData {
       evaluation_result_dir_ = evaluation_result_dir;
     }
 
-    void query_scan(std::string input_data_dir, int scan_id) {
+    void query_scan(const std::shared_ptr<PointXYZProbs>& scan, 
+      std::string input_data_dir, int scan_id) {
       char scan_id_c[256];
       sprintf(scan_id_c, "%06d", scan_id);
       std::string scan_name = input_data_dir + std::string(scan_id_c) + ".bin";
       std::string gt_name = gt_label_dir_ + std::string(scan_id_c) + ".label";
       std::string result_name = evaluation_result_dir_ + std::string(scan_id_c) + ".txt";
-      pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, gt_name);
+      pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
       Eigen::Matrix4d transform = lidar_poses_[scan_id];
       Eigen::Matrix4d calibration;
       
@@ -155,16 +159,23 @@ class SemanticKITTIData {
                        0                ,  0                ,  0                ,  1.000000000000000;
       
       Eigen::Matrix4d new_transform = transform * calibration;
-      pcl::transformPointCloud (*cloud, *cloud, new_transform);
+      pcl::transformPointCloud (cloud, cloud, new_transform);
 
       std::ofstream result_file;
       result_file.open(result_name);
-      for (int i = 0; i < cloud->points.size(); ++i) {
-        semantic_bki::SemanticOcTreeNode node = map_->search(cloud->points[i].x, cloud->points[i].y, cloud->points[i].z);
+      for (int i = 0; i < cloud.points.size(); ++i) {
+        semantic_bki::SemanticOcTreeNode node = map_->search(cloud.points[i].x, cloud.points[i].y, cloud.points[i].z);
         int pred_label = 0;
-	      if (node.get_state() == semantic_bki::State::OCCUPIED)
+	      if (node.get_state() == semantic_bki::State::OCCUPIED) {
 	        pred_label = node.get_semantics();
-        result_file << cloud->points[i].label << " " << pred_label << "\n";
+        }
+
+        int most_likely_class = std::distance(
+          scan->probs[i].begin(), 
+          std::max_element(scan->probs[i].begin(), 
+          scan->probs[i].end())
+        );
+        result_file << most_likely_class << " " << pred_label << "\n";
       }
       result_file.close();
     }
@@ -193,34 +204,34 @@ class SemanticKITTIData {
       return -1;
     }
 
-    pcl::PointCloud<pcl::PointXYZL>::Ptr kitti2pcl(std::string fn, std::string fn_label) {
-      FILE* fp_label = std::fopen(fn_label.c_str(), "r");
-      if (!fp_label) {
-        std::perror("File opening failed");
-      }
-      std::fseek(fp_label, 0L, SEEK_END);
-      std::rewind(fp_label);
-      FILE* fp = std::fopen(fn.c_str(), "r");
-      if (!fp) {
-        std::perror("File opening failed");
-      }
-      std::fseek(fp, 0L, SEEK_END);
-      size_t sz = std::ftell(fp);
-      std::rewind(fp);
-      int n_hits = sz / (sizeof(float) * 4);
-      pcl::PointCloud<pcl::PointXYZL>::Ptr pc(new pcl::PointCloud<pcl::PointXYZL>);
-      for (int i = 0; i < n_hits; i++) {
-        pcl::PointXYZL point;
-        float intensity;
-        if (fread(&point.x, sizeof(float), 1, fp) == 0) break;
-        if (fread(&point.y, sizeof(float), 1, fp) == 0) break;
-        if (fread(&point.z, sizeof(float), 1, fp) == 0) break;
-        if (fread(&intensity, sizeof(float), 1, fp) == 0) break;
-        if (fread(&point.label, sizeof(float), 1, fp_label) == 0) break;
-        pc->push_back(point);
-      }
-      std::fclose(fp);
-      std::fclose(fp_label);
-      return pc;
-    }
+    // pcl::PointCloud<pcl::PointXYZL>::Ptr kitti2pcl(std::string fn, std::string fn_label) {
+    //   FILE* fp_label = std::fopen(fn_label.c_str(), "r");
+    //   if (!fp_label) {
+    //     std::perror("File opening failed");
+    //   }
+    //   std::fseek(fp_label, 0L, SEEK_END);
+    //   std::rewind(fp_label);
+    //   FILE* fp = std::fopen(fn.c_str(), "r");
+    //   if (!fp) {
+    //     std::perror("File opening failed");
+    //   }
+    //   std::fseek(fp, 0L, SEEK_END);
+    //   size_t sz = std::ftell(fp);
+    //   std::rewind(fp);
+    //   int n_hits = sz / (sizeof(float) * 4);
+    //   pcl::PointCloud<pcl::PointXYZL>::Ptr pc(new pcl::PointCloud<pcl::PointXYZL>);
+    //   for (int i = 0; i < n_hits; i++) {
+    //     pcl::PointXYZL point;
+    //     float intensity;
+    //     if (fread(&point.x, sizeof(float), 1, fp) == 0) break;
+    //     if (fread(&point.y, sizeof(float), 1, fp) == 0) break;
+    //     if (fread(&point.z, sizeof(float), 1, fp) == 0) break;
+    //     if (fread(&intensity, sizeof(float), 1, fp) == 0) break;
+    //     if (fread(&point.label, sizeof(float), 1, fp_label) == 0) break;
+    //     pc->push_back(point);
+    //   }
+    //   std::fclose(fp);
+    //   std::fclose(fp_label);
+    //   return pc;
+    // }
 };

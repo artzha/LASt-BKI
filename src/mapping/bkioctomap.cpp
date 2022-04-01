@@ -16,6 +16,8 @@ using std::vector;
 std::cout << "Debug: " << msg << std::endl; }
 #endif
 
+#define BKIOCTOMAP_BG_IDX       (int) -1
+
 namespace semantic_bki {
 
     SemanticBKIOctoMap::SemanticBKIOctoMap() : SemanticBKIOctoMap(0.1f, // resolution
@@ -223,17 +225,17 @@ namespace semantic_bki {
 //     }
 
 
-    void SemanticBKIOctoMap::insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+    void SemanticBKIOctoMap::insert_pointcloud(const std::shared_ptr<PointXYZProbs> scan, const point3f &origin, float ds_resolution,
                                       float free_res, float max_range) {
 
 #ifdef DEBUG
         Debug_Msg("Insert pointcloud: " << "cloud size: " << cloud.size() << " origin: " << origin);
 #endif
-
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = &scan->pc;
         ////////// Preparation //////////////////////////
         /////////////////////////////////////////////////
         GPPointCloud xy;
-        get_training_data(cloud, origin, ds_resolution, free_res, max_range, xy);
+        get_training_data(scan, origin, ds_resolution, free_res, max_range, xy);
 #ifdef DEBUG
         Debug_Msg("Training data size: " << xy.size());
 #endif
@@ -278,6 +280,8 @@ namespace semantic_bki {
             if (block_xy.size() < 1)
                 continue;
 
+            std::vector<float> background_prob(SemanticOcTreeNode::num_class, 0);
+            background_prob[0] = 1.0;
             vector<float> block_x;
             vector<vector<float> > block_y;
             for (auto it = block_xy.cbegin(); it != block_xy.cend(); ++it) {
@@ -286,9 +290,12 @@ namespace semantic_bki {
                 block_x.push_back(it->first.z());
 
                 // Copy softmax probs for each training point 
-                for (auto nc_it = it->second.cbegin(); nc_it !=it->second.cend(); ++nc_it) {
-                    block_y.push_back(nc_it);
-                }            
+                int prob_map_idx = it->second;
+                if (prob_map_idx==BKIOCTOMAP_BG_IDX) {
+                    block_y.push_back(background_prob);
+                } else {
+                    block_y.push_back(scan->probs[prob_map_idx]);
+                }         
             
             //std::cout << search(it->first.x(), it->first.y(), it->first.z()) << std::endl;
             }
@@ -378,16 +385,17 @@ namespace semantic_bki {
         }
     }
 
-    void SemanticBKIOctoMap::get_training_data(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+    void SemanticBKIOctoMap::get_training_data(const std::shared_ptr<PointXYZProbs> scan, const point3f &origin, float ds_resolution,
                                       float free_resolution, float max_range, GPPointCloud &xy) const {
-        PCLPointCloud sampled_hits;
-        downsample(cloud, sampled_hits, ds_resolution);
+        // PCLPointCloud sampled_hits;
+        // downsample(cloud, sampled_hits, ds_resolution);
+        pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
 
         PCLPointCloud frees;
         frees.height = 1;
         frees.width = 0;
         xy.clear();
-        for (auto it = sampled_hits.begin(); it != sampled_hits.end(); ++it) {
+        for (auto it = cloud.begin(); it != cloud.end(); ++it) {
             point3f p(it->x, it->y, it->z);
             if (max_range > 0) {
                 double l = (p - origin).norm();
@@ -395,7 +403,8 @@ namespace semantic_bki {
                     continue;
             }
             
-            xy.emplace_back(p, it->label);
+            size_t prob_idx = it - cloud.begin(); 
+            xy.emplace_back(p, prob_idx); // Changed: Map index to probabilities in scans
 
             PointCloud frees_n;
             beam_sample(p, origin, frees_n, free_resolution);
@@ -404,7 +413,7 @@ namespace semantic_bki {
             p_origin.x = origin.x();
             p_origin.y = origin.y();
             p_origin.z = origin.z();
-            p_origin.label = 0;
+            p_origin.label = BKIOCTOMAP_BG_IDX;
             frees.push_back(p_origin);
             
             for (auto p = frees_n.begin(); p != frees_n.end(); ++p) {
@@ -412,17 +421,17 @@ namespace semantic_bki {
                 p_free.x = p->x();
                 p_free.y = p->y();
                 p_free.z = p->z();
-                p_free.label = 0;
+                p_free.label = BKIOCTOMAP_BG_IDX;
                 frees.push_back(p_free);
                 frees.width++;
             }
         }
 
-        PCLPointCloud sampled_frees;    
-        downsample(frees, sampled_frees, ds_resolution);
+        // PCLPointCloud sampled_frees;    
+        // downsample(frees, sampled_frees, ds_resolution);
 
-        for (auto it = sampled_frees.begin(); it != sampled_frees.end(); ++it) {
-            xy.emplace_back(point3f(it->x, it->y, it->z), 0.0f);
+        for (auto it = frees.begin(); it != frees.end(); ++it) {
+            xy.emplace_back(point3f(it->x, it->y, it->z), BKIOCTOMAP_BG_IDX);
         }
     }
 
@@ -493,6 +502,7 @@ namespace semantic_bki {
         lim_max.z() = *zlim.second;
     }
 
+    // cONVERTS XYZ COORDS TO block hash keys for rtree
     void SemanticBKIOctoMap::get_blocks_in_bbox(const point3f &lim_min, const point3f &lim_max,
                                        vector<BlockHashKey> &blocks) const {
         for (float x = lim_min.x() - block_size; x <= lim_max.x() + 2 * block_size; x += block_size) {

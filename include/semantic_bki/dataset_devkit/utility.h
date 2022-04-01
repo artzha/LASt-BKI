@@ -6,9 +6,10 @@
 // Load pc predictions here
 struct PointXYZProbs {
   pcl::PointCloud<pcl::PointXYZ> pc;
-  std::vector<float> probs;
+  std::vector<std::vector<float> >probs;
+  int frame_id;
 
   PointXYZProbs(int nc) {
-    probs.resize(nc)
+    probs.resize(nc);
   }
 };

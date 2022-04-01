@@ -19,7 +19,7 @@ namespace semantic_bki {
         using MatrixXType = Eigen::Matrix<T, -1, dim, Eigen::RowMajor>;
         using MatrixKType = Eigen::Matrix<T, -1, -1, Eigen::RowMajor>;
         using MatrixDKType = Eigen::Matrix<T, -1, 1>;
-        using MatrixYType = Eigen::Matrix<T, -1, 1>;
+        using MatrixYType = Eigen::Matrix<T, -1, -1>;
 
         SemanticBKInference(int nc, T sf2, T ell) : nc(nc), sf2(sf2), ell(ell), trained(false) { }
 
@@ -31,7 +31,11 @@ namespace semantic_bki {
         void train(const std::vector<T> &x, const std::vector<std::vector<T> > &y) {
             assert(x.size() % dim == 0 && (int) (x.size() / dim) == y.size());
             MatrixXType _x = Eigen::Map<const MatrixXType>(x.data(), x.size() / dim, dim);
-            MatrixYType _y = Eigen::Map<const MatrixYType>(y.data(), y.size(), this->nc); // data, num rows, num cols
+            MatrixYType _y(y.size(), this->nc); // data, num rows, num cols
+            for (size_t idx = 0; idx < y.size(); ++idx) {
+              _y.row(idx) = Eigen::VectorXf::Map(y[idx].data(), y[idx].size());
+            }
+            
             this->y_vec = y;
             train(_x, _y);
         }
@@ -107,6 +111,7 @@ namespace semantic_bki {
       //     }
       // }
 
+      // Updates ybars to be samples per class
       void predict_softmax(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars, int N) {
         assert(xs.size() % dim == 0);
         MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
