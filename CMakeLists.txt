@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(semantic_bki)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -o3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O0")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -162,9 +162,9 @@ add_executable(semantickitti_node
 
 ## Specify libraries to link a library or executable target against
 
-target_link_libraries(toy_example_node
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(toy_example_node
+#   ${catkin_LIBRARIES}
+# )
 
 # target_link_libraries(kitti_node
 #   ${catkin_LIBRARIES}

@@ -28,7 +28,7 @@ namespace semantic_bki {
     public:
         /// Types used internally
         typedef std::vector<point3f> PointCloud;
-        typedef std::pair<point3f, float> GPPointType;
+        typedef std::pair<point3f, std::vector<float> > GPPointType;
         typedef std::vector<GPPointType> GPPointCloud;
         typedef RTree<GPPointType *, float, 3, float> MyRTree;
 

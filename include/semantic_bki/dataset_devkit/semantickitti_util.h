@@ -10,6 +10,9 @@
 #include <pcl/common/transforms.h>
 #include <pcl/io/pcd_io.h>
 
+// Utility datastructures for ros listener
+#include "utility.h"
+
 class SemanticKITTIData {
   public:
     SemanticKITTIData(ros::NodeHandle& nh,
@@ -60,51 +63,50 @@ class SemanticKITTIData {
       }
     } 
 
-    bool process_scans(std::string input_data_dir, std::string input_label_dir, int scan_num, bool query, bool visualize) {
+    bool process_scan(std::shared_ptr<PointXYZProbs> scan, bool query, bool visualize) {
       semantic_bki::point3f origin;
-      for (int scan_id  = 0; scan_id < scan_num; ++scan_id) {
-        char scan_id_c[256];
-        sprintf(scan_id_c, "%06d", scan_id);
-        std::string scan_name = input_data_dir + std::string(scan_id_c) + ".bin";
-        std::string label_name = input_label_dir + std::string(scan_id_c) + ".label";
-        pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, label_name);
-        Eigen::Matrix4d transform = lidar_poses_[scan_id];
-        Eigen::Matrix4d calibration;
-        
-        // 00-02: 2011_10_03_drive
-        //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
-	      //	      -0.007210626507497,  0.008081198471645, -0.999941316450383, -0.054039847297480,
-	      //	       0.999973864590328,  0.000485948581039, -0.007206933692422, -0.292196864868591,
-	      //	       0                ,  0                ,  0                ,  1.000000000000000;
-        
-        // 03: 2011_09_26_drive_0067
-        //calibration << 0.000234773698147, -0.999944154543764, -0.010563477811052, -0.002796816941295,
-        //               0.010449407416593,  0.010565353641379, -0.999889574117649, -0.075108791382965,
-        //               0.999945388562002,  0.000124365378387,  0.010451302995669, -0.272132796405873,
-        //               0                ,  0                ,  0                ,  1.000000000000000;
 
-        // 04-10: 2011_09_30_drive
-        calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
-                        -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
-                         0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
-       	                 0                ,  0                ,  0                ,  1.000000000000000;
-	      
-        Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
-        pcl::transformPointCloud (*cloud, *cloud, new_transform);
-        origin.x() = transform(0, 3);
-        origin.y() = transform(1, 3);
-        origin.z() = transform(2, 3);
-        map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
-        std::cout << "Inserted point cloud at " << scan_name << std::endl;
-        
-        if (query) {
-          for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
-          query_scan(input_data_dir, query_id);
-        }
+      char scan_id_c[256];
+      sprintf(scan_id_c, "%06d", scan_id);
 
-        if (visualize)
-	        publish_map();
+      pcl::PointCloud<pcl::PointXYZL>::Ptr cloud = kitti2pcl(scan_name, label_name);
+      Eigen::Matrix4d transform = lidar_poses_[scan_id];
+      Eigen::Matrix4d calibration;
+      
+      // 00-02: 2011_10_03_drive
+      //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
+      //	      -0.007210626507497,  0.008081198471645, -0.999941316450383, -0.054039847297480,
+      //	       0.999973864590328,  0.000485948581039, -0.007206933692422, -0.292196864868591,
+      //	       0                ,  0                ,  0                ,  1.000000000000000;
+      
+      // 03: 2011_09_26_drive_0067
+      //calibration << 0.000234773698147, -0.999944154543764, -0.010563477811052, -0.002796816941295,
+      //               0.010449407416593,  0.010565353641379, -0.999889574117649, -0.075108791382965,
+      //               0.999945388562002,  0.000124365378387,  0.010451302995669, -0.272132796405873,
+      //               0                ,  0                ,  0                ,  1.000000000000000;
+
+      // 04-10: 2011_09_30_drive
+      calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
+                      -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
+                        0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
+                        0                ,  0                ,  0                ,  1.000000000000000;
+      
+      Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
+      pcl::transformPointCloud (*cloud, *cloud, new_transform);
+      origin.x() = transform(0, 3);
+      origin.y() = transform(1, 3);
+      origin.z() = transform(2, 3);
+      map_->insert_pointcloud(*cloud, origin, ds_resolution_, free_resolution_, max_range_);
+      std::cout << "Inserted point cloud at " << scan_name << std::endl;
+      
+      if (query) {
+        for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
+        query_scan(input_data_dir, query_id);
       }
+
+      if (visualize)
+        publish_map();
+
       return 1;
     }
 

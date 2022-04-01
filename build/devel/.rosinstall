@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/arthur/Documents/EECS 568/FinalProject/test_repos/catkin_ws/src/BKINeuralNet/build/devel/setup.sh

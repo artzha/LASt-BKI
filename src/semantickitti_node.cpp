@@ -5,6 +5,65 @@
 #include "bkioctomap.h"
 #include "markerarray_pub.h"
 #include "semantickitti_util.h"
+#include "utility.h"
+
+// For ROS listener
+#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Bool.h"
+#include <thread>
+
+#include <memory>
+#include <queue>
+
+#define NUM_CLASSES       (int) 11
+
+std::queue<std::shared_ptr<PointXYZProbs> > scans_q;
+
+void prediction_scan_listener(std_msgs::Float32MultiArray scan_msg)
+{
+  const int frame_header_sz = 3;
+  const int xyz_coord_sz    = 3;
+
+  std::cout << "Received data of index: " << scan_msg.data.at(0) << std::endl;
+  std::shared_ptr<PointXYZProbs> scan_ptr = \
+    std::shared_ptr<PointXYZProbs>(new PointXYZProbs(NUM_CLASSES));
+
+  int frame_num   = int(scan_msg.data.at(0));
+  int num_points  = int(scan_msg.data.at(1));
+  int num_classes = int(scan_msg.data.at(2));
+
+  int packet_sz = xyz_coord_sz + num_classes; // Size of each data packaet
+  for(int packet_num = 0; packet_num < num_points; packet_num++)
+  {
+    pcl::PointXYZL point;
+    int packet_curr_idx  = (packet_num * packet_sz) + frame_header_sz;
+
+    // Add point xyz coords
+    point.x = scan_msg.data.at(packet_curr_idx);
+    point.y = scan_msg.data.at(packet_curr_idx+1);
+    point.z = scan_msg.data.at(packet_curr_idx+2);
+    scan_ptr->pc.push_back(point);
+
+    // Add pred probs for each class
+    for (int class_idx = 0; class_idx < num_classes; ++class_idx) {
+      int prob_idx = packet_curr_idx + xyz_coord_sz + class_idx;
+      scan_ptr->probs[class_idx] = scan_msg.data.at(prob_idx)
+    }
+  }
+
+  // Add scan to queue
+  scans_q.push(scan_ptr);
+}
+
+void threaded_listener_function()
+{
+  int argc;
+  char **argv;
+  ros::init(argc, argv, "listener");
+  ros::NodeHandle n;
+  ros:: Subscriber sub = n.subscribe("floats", 10, prediction_scan_listener);
+  ros::spin();
+}
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "semantickitti_node");
@@ -19,7 +78,7 @@ int main(int argc, char **argv) {
     double free_thresh = 0.3;
     double occupied_thresh = 0.7;
     double resolution = 0.1;
-    int num_class = 2;
+    int num_class = 11;
     double free_resolution = 0.5;
     double ds_resolution = 0.1;
     int scan_num = 0;
@@ -85,13 +144,23 @@ int main(int argc, char **argv) {
       "visualize:" << visualize
       );
 
-    
+    // Initialize ros listener thread
+    std::thread t1(threaded_listener_function);
+
     ///////// Build Map /////////////////////
     SemanticKITTIData semantic_kitti_data(nh, resolution, block_depth, sf2, ell, num_class, free_thresh, occupied_thresh, var_thresh, ds_resolution, free_resolution, max_range, map_topic, prior);
     semantic_kitti_data.read_lidar_poses(dir + '/' + lidar_pose_file);
     semantic_kitti_data.set_up_evaluation(dir + '/' + gt_label_prefix, dir + '/' + evaluation_result_prefix);
-    semantic_kitti_data.process_scans(dir + '/' + input_data_prefix, dir + '/' + input_label_prefix, scan_num, query, visualize);
 
-    ros::spin();
+    while (1) {
+      if (!scans_q.empty()) {
+        std::shared_ptr<PointXYZProbs> > scan = scans_q.front()
+        scans_q.
+        semantic_kitti_data.process_scan(scan, query, visualize);
+        std::cout << "after while loop" << std::endl;
+        wait_for_new_softmax_data = true;
+      }
+      ros::spin();
+    }
     return 0;
 }

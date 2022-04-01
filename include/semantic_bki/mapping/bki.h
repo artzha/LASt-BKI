@@ -28,10 +28,10 @@ namespace semantic_bki {
          * @param x input vector (3N, row major)
          * @param y target vector (N)
          */
-        void train(const std::vector<T> &x, const std::vector<T> &y) {
+        void train(const std::vector<T> &x, const std::vector<std::vector<T> > &y) {
             assert(x.size() % dim == 0 && (int) (x.size() / dim) == y.size());
             MatrixXType _x = Eigen::Map<const MatrixXType>(x.data(), x.size() / dim, dim);
-            MatrixYType _y = Eigen::Map<const MatrixYType>(y.data(), y.size(), 1);
+            MatrixYType _y = Eigen::Map<const MatrixYType>(y.data(), y.size(), this->nc); // data, num rows, num cols
             this->y_vec = y;
             train(_x, _y);
         }
@@ -39,7 +39,7 @@ namespace semantic_bki {
         /*
          * @brief Fit BGK Model
          * @param x input matrix (NX3)
-         * @param y target matrix (NX1)
+         * @param y target matrix (NXnc) where nc is number of classes
          */
         void train(const MatrixXType &x, const MatrixYType &y) {
             this->x = MatrixXType(x);
@@ -48,63 +48,64 @@ namespace semantic_bki {
         }
 
        
-      void predict(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
-          assert(xs.size() % dim == 0);
-          MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
-          assert(trained == true);
-          MatrixKType Ks;
+      // void predict(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
+      //     assert(xs.size() % dim == 0);
+      //     MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
+      //     assert(trained == true);
+      //     MatrixKType Ks;
 
-          covSparse(_xs, x, Ks);
+      //     covSparse(_xs, x, Ks);
           
-          ybars.resize(_xs.rows());
-          for (int r = 0; r < _xs.rows(); ++r)
-            ybars[r].resize(nc);
-
-            MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
-            for (int k = 0; k < nc; ++k) {
-              for (int i = 0; i < y_vec.size(); ++i) {
-                if (y_vec[i] == k)
-                  _y_vec(i, 0) = 1;
-                else
-                  _y_vec(i, 0) = 0;
-              }
+      //     ybars.resize(_xs.rows());
+      //     for (int r = 0; r < _xs.rows(); ++r)
+      //       ybars[r].resize(nc);
             
-            MatrixYType _ybar;
-            _ybar = (Ks * _y_vec);
+      //       MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
             
-            for (int r = 0; r < _ybar.rows(); ++r)
-              ybars[r][k] = _ybar(r, 0);
-          }
-      }
+      //       for (int k = 0; k < nc; ++k) {
+      //         for (int i = 0; i < y_vec.size(); ++i) {
+      //           if (y_vec[i] == k)
+      //             _y_vec(i, 0) = 1;
+      //           else
+      //             _y_vec(i, 0) = 0;
+      //         }
+            
+      //       MatrixYType _ybar;
+      //       _ybar = (Ks * _y_vec);
+            
+      //       for (int r = 0; r < _ybar.rows(); ++r)
+      //         ybars[r][k] = _ybar(r, 0);
+      //     }
+      // }
 
-      void predict_csm(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
-          assert(xs.size() % dim == 0);
-          MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
-          assert(trained == true);
-          MatrixKType Ks;
+      // void predict_csm(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars) {
+      //     assert(xs.size() % dim == 0);
+      //     MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
+      //     assert(trained == true);
+      //     MatrixKType Ks;
 
-          covCountingSensorModel(_xs, x, Ks);
+      //     covCountingSensorModel(_xs, x, Ks);
           
-          ybars.resize(_xs.rows());
-          for (int r = 0; r < _xs.rows(); ++r)
-            ybars[r].resize(nc);
+      //     ybars.resize(_xs.rows());
+      //     for (int r = 0; r < _xs.rows(); ++r)
+      //       ybars[r].resize(nc);
 
-            MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
-            for (int k = 0; k < nc; ++k) {
-              for (int i = 0; i < y_vec.size(); ++i) {
-                if (y_vec[i] == k)
-                  _y_vec(i, 0) = 1;
-                else
-                  _y_vec(i, 0) = 0;
-              }
+      //       MatrixYType _y_vec = Eigen::Map<const MatrixYType>(y_vec.data(), y_vec.size(), 1);
+      //       for (int k = 0; k < nc; ++k) {
+      //         for (int i = 0; i < y_vec.size(); ++i) {
+      //           if (y_vec[i] == k)
+      //             _y_vec(i, 0) = 1;
+      //           else
+      //             _y_vec(i, 0) = 0;
+      //         }
             
-            MatrixYType _ybar;
-            _ybar = (Ks * _y_vec);
+      //       MatrixYType _ybar;
+      //       _ybar = (Ks * _y_vec);
             
-            for (int r = 0; r < _ybar.rows(); ++r)
-              ybars[r][k] = _ybar(r, 0);
-          }
-      }
+      //       for (int r = 0; r < _ybar.rows(); ++r)
+      //         ybars[r][k] = _ybar(r, 0);
+      //     }
+      // }
 
       void predict_softmax(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars, int N) {
         assert(xs.size() % dim == 0);
@@ -112,13 +113,14 @@ namespace semantic_bki {
         assert(trained == true);
         ybars.resize(_xs.rows(), vector<T>(nc, 0));
 
-        for (int r = 0; r < _cs.rows(); ++r) {
+        for (int r = 0; r < _xs.rows(); ++r) {
           // cumulative distribution probability for each class
-          vector<T> sample_prob(y_vec[r]);
+          vector<T> sample_prob(this->y_vec[r]);
           for (int j = 1; j < nc; ++j) {
             sample_prob[j] += sample_prob[j - 1];
           }
           
+          // Random sampling to generate ybar counts
           for (int i = 0; i < N; ++i) {
             float p = (rand() % 100) * 0.01;
             for (int k = 0; k < nc; ++k) {
