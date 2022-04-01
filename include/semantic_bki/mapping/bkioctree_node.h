@@ -42,13 +42,13 @@ namespace semantic_bki {
          * @param ybar kernel density estimate of positive class (occupied)
          * @param kbar kernel density of negative class (unoccupied)
          */
-        void update(std::vector<float>& ybars);
+        void update(std::vector<float>& ybars, int N);
 
         /// Get probability of occupancy.
-        void get_probs(std::vector<float>& probs) const;
+        void get_probs(std::vector<float>& probs, int N) const;
 
         /// Get variance of occupancy (uncertainty)
-	      void get_vars(std::vector<float>& vars) const;
+	      void get_vars(std::vector<float>& vars, int N) const;
         
         /*
          * @brief Get occupancy state of the node.

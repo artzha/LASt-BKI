@@ -8,6 +8,10 @@
 #include "bkiblock.h"
 #include "bkioctree_node.h"
 
+#include "utility.h"
+
+const static int SAMPLE_SIZE = 100;
+
 namespace semantic_bki {
 
     /// PCL PointCloud types as input
@@ -83,7 +87,7 @@ namespace semantic_bki {
                                float max_range = -1);
 
 
-        void insert_pointcloud(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+        void insert_pointcloud(const std::shared_ptr<PointXYZProbs> scan, const point3f &origin, float ds_resolution,
                                float free_res = 2.0f,
                                float max_range = -1);
 
@@ -371,7 +375,7 @@ namespace semantic_bki {
                          float free_resolution) const;
 
         /// Get training data from one sensor scan.
-        void get_training_data(const PCLPointCloud &cloud, const point3f &origin, float ds_resolution,
+        void get_training_data(const std::shared_ptr<PointXYZProbs> scan, const point3f &origin, float ds_resolution,
                                float free_resolution, float max_range, GPPointCloud &xy) const;
 
         float resolution;

@@ -2,7 +2,7 @@
 
 # Map information
 resolution: 0.3
-num_class: 20 # Number of classes
+num_class: 11 # Number of classes
 
 # Sampling resolutions
 free_resolution: 100 # Free space sampling resolution
