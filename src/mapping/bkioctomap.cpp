@@ -229,7 +229,7 @@ namespace semantic_bki {
                                       float free_res, float max_range) {
 
 #ifdef DEBUG
-        Debug_Msg("Insert pointcloud: " << "cloud size: " << cloud.size() << " origin: " << origin);
+        Debug_Msg("Insert pointcloud: " << "cloud size: " << scan->pc.size() << " origin: " << origin);
 #endif
         // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = &scan->pc;
         ////////// Preparation //////////////////////////
@@ -337,7 +337,7 @@ namespace semantic_bki {
                 xs.push_back(p.y());
                 xs.push_back(p.z());
             }
-            //std::cout << "xs size: "<<xs.size() << std::endl;
+            // std::cout << "xs size: "<< xs.size() << '\n';
 
             ExtendedBlock eblock = block->get_extended_block();
             for (auto block_it = eblock.cbegin(); block_it != eblock.cend(); ++block_it) {
@@ -347,13 +347,13 @@ namespace semantic_bki {
 
                	vector<vector<float>> ybars;
 		        // bgk->second->predict(xs, ybars);
+                // std::cout << "Begin sampling from softmax\n";
                 bgk->second->predict_softmax(xs, ybars, SAMPLE_SIZE);
-
+                // std::cout << "Finish sampling from softmax\n";
                 int j = 0;
                 for (auto leaf_it = block->begin_leaf(); leaf_it != block->end_leaf(); ++leaf_it, ++j) {
                     SemanticOcTreeNode &node = leaf_it.get_node();
                     // Only need to update if kernel density total kernel density est > 0
-                    //if (kbar[j] > 0.0)
                     node.update(ybars[j], SAMPLE_SIZE);
                 }
             }
@@ -387,8 +387,8 @@ namespace semantic_bki {
 
     void SemanticBKIOctoMap::get_training_data(const std::shared_ptr<PointXYZProbs> scan, const point3f &origin, float ds_resolution,
                                       float free_resolution, float max_range, GPPointCloud &xy) const {
-        // PCLPointCloud sampled_hits;
-        // downsample(cloud, sampled_hits, ds_resolution);
+        // pcl::PointCloud<pcl::PointXYZ> cloud;
+        // downsample(scan->pc, cloud, ds_resolution);
         pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
 
         PCLPointCloud frees;

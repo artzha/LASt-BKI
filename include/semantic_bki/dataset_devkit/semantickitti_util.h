@@ -94,11 +94,12 @@ class SemanticKITTIData {
                         0                ,  0                ,  0                ,  1.000000000000000;
       
       Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
+      std::cout << "Transforming point cloud\n";
       pcl::transformPointCloud (cloud, cloud, new_transform);
       origin.x() = transform(0, 3);
       origin.y() = transform(1, 3);
       origin.z() = transform(2, 3);
-
+      std::cout << "Inserting point cloud\n";
       map_->insert_pointcloud(scan, origin, ds_resolution_, free_resolution_, max_range_);
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
       
@@ -106,7 +107,7 @@ class SemanticKITTIData {
         for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
           query_scan(scan, input_data_dir, query_id);
       }
-
+      
       if (visualize)
         publish_map();
 

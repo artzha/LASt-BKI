@@ -9,7 +9,7 @@ struct PointXYZProbs {
   std::vector<std::vector<float> >probs;
   int frame_id;
 
-  PointXYZProbs(int nc) {
-    probs.resize(nc);
+  PointXYZProbs(int point_cnt, int nc) {
+    probs.resize(point_cnt, std::vector<float>(nc, 0.0));
   }
 };

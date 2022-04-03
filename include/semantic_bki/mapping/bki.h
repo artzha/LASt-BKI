@@ -37,6 +37,8 @@ namespace semantic_bki {
             }
             
             this->y_vec = y;
+            // std::cout << "x " << _x.size() << std::endl;
+            // std::cout << "yvec size train " << this->y_vec.size() << std::endl;
             train(_x, _y);
         }
 
@@ -112,32 +114,58 @@ namespace semantic_bki {
       // }
 
       // Updates ybars to be samples per class
+      // TODO: THIS IS TAKING TOO LONG NOT WOKRING< NEED TO UNDERSTAND
       void predict_softmax(const std::vector<T> &xs, std::vector<std::vector<T>> &ybars, int N) {
         assert(xs.size() % dim == 0);
         MatrixXType _xs = Eigen::Map<const MatrixXType>(xs.data(), xs.size() / dim, dim);
         assert(trained == true);
+        MatrixKType Ks;
+
+        covSparse(_xs, this->x, Ks);
+
         ybars.resize(_xs.rows(), vector<T>(nc, 0));
 
-        for (int r = 0; r < _xs.rows(); ++r) {
-          // cumulative distribution probability for each class
-          vector<T> sample_prob(this->y_vec[r]);
-          for (int j = 1; j < nc; ++j) {
-            sample_prob[j] += sample_prob[j - 1];
-          }
-          
-          // Random sampling to generate ybar counts
-          for (int i = 0; i < N; ++i) {
-            float p = (rand() % 100) * 0.01;
-            for (int k = 0; k < nc; ++k) {
-              if (k == 0 && p <= sample_prob[k]) {
-                ybars[r][k] += 1;
-              }
-              else if (k != 0 && p <= sample_prob[k] && p > sample_prob[k - 1]) {
-                ybars[r][k] += 1;
-              }
+        // std::cout << "num rows " << _xs.rows() << std::endl;
+        // std::cout << "yvec size for r " << this->y_vec.size() << std::endl;
+        // for (int r = 0; r < _xs.rows(); ++r) {
+        //   std::cout << "STarting loop again with r " << r << std::endl;
+
+        MatrixYType _y_vec = MatrixYType::Zero(this->y_vec.size(), this->nc); // data, num rows, num cols
+        for (size_t idx = 0; idx < this->y_vec.size(); ++idx) {
+          _y_vec.row(idx) = Eigen::VectorXf::Map(this->y_vec[idx].data(), this->y_vec[idx].size());
+        }
+        _y_vec = _y_vec * N;
+
+        // for (int y_idx = 0; y_idx < this->y_vec.size(); ++y_idx) {
+        //   // cumulative distribution probability for each class
+        //   vector<T> sample_prob = this->y_vec[y_idx];
+
+        //   for (int j = 1; j < nc; ++j) {
+        //     sample_prob[j] += sample_prob[j - 1];
+        //   }
+
+        //   for (int i = 0; i < N; ++i) {
+        //     float p = (rand() % 100) * 0.01;
+        //     for (int k = 0; k < nc; ++k) {
+        //       if (k == 0 && p <= sample_prob[k]) {
+        //         _y_vec(y_idx, k) += 1;
+        //       } 
+        //       if (k > 0 && p <= sample_prob[k] && p > sample_prob[k - 1]) {
+        //         _y_vec(y_idx, k) += 1;
+        //       }
+        //     }
+        //   }
+
+          MatrixYType _ybar;
+          _ybar = (Ks * _y_vec);
+
+          for (int r = 0; r < _ybar.rows(); ++r) {
+            for (int k = 0; k < _ybar.cols(); ++k) {
+              ybars[r][k] = _ybar(r, k);
             }
           }
-        }
+        // }
+        // }
       }
 
         
@@ -198,7 +226,7 @@ namespace semantic_bki {
 
         MatrixXType x;   // temporary storage of training data
         MatrixYType y;   // temporary storage of training labels
-        std::vector<vector<T>> y_vec;
+        std::vector<std::vector<T> > y_vec;
 
         bool trained;    // true if bgkinference stored training data
     };

@@ -7,13 +7,14 @@
 #include "semantickitti_util.h"
 #include "utility.h"
 
-// For ROS listener
-#include "std_msgs/Float32MultiArray.h"
-#include "std_msgs/Bool.h"
 #include <thread>
 
 #include <memory>
 #include <queue>
+
+// For ROS listener
+#include "std_msgs/Float32MultiArray.h"
+#include "std_msgs/Bool.h"
 
 #define NUM_CLASSES       (int) 11
 
@@ -25,31 +26,38 @@ void prediction_scan_listener(std_msgs::Float32MultiArray scan_msg)
   const int xyz_coord_sz    = 3;
 
   std::cout << "Received data of index: " << scan_msg.data.at(0) << std::endl;
-  std::shared_ptr<PointXYZProbs> scan_ptr = \
-    std::shared_ptr<PointXYZProbs>(new PointXYZProbs(NUM_CLASSES));
-  // TODO: FIX PROBS 2D VECTOR!!
+  // std::cout << "size " << scan_msg.data.size() << '\n';
   int frame_num   = int(scan_msg.data.at(0));
   int num_points  = int(scan_msg.data.at(1));
   int num_classes = int(scan_msg.data.at(2));
 
+  std::shared_ptr<PointXYZProbs> scan_ptr = \
+    std::shared_ptr<PointXYZProbs>(new PointXYZProbs(num_points, NUM_CLASSES));
+
   scan_ptr->frame_id = frame_num;
 
-  int packet_sz = xyz_coord_sz + num_classes; // Size of each data packaet
-  for(int packet_num = 0; packet_num < num_points; packet_num++)
+  int point_packet_sz   = xyz_coord_sz; // Size of each data packet
+  int pred_packet_sz    = num_classes;
+  int point_start_idx   = frame_header_sz;
+  int pred_start_idx    = frame_header_sz + point_packet_sz*num_points;
+  for(int point_id = 0; point_id < num_points; ++point_id)
   {
     pcl::PointXYZ point;
-    int packet_curr_idx  = (packet_num * packet_sz) + frame_header_sz;
+    int point_curr_idx  = point_start_idx + point_id*point_packet_sz;
 
     // Add point xyz coords
-    point.x = scan_msg.data.at(packet_curr_idx);
-    point.y = scan_msg.data.at(packet_curr_idx+1);
-    point.z = scan_msg.data.at(packet_curr_idx+2);
+    // std::cout << "point curr idx " << point_curr_idx << '\n';
+    point.x = scan_msg.data.at(point_curr_idx);
+    point.y = scan_msg.data.at(point_curr_idx+1);
+    point.z = scan_msg.data.at(point_curr_idx+2);
     scan_ptr->pc.push_back(point);
 
     // Add pred probs for each class
     for (int class_idx = 0; class_idx < num_classes; ++class_idx) {
-      int prob_idx = packet_curr_idx + xyz_coord_sz + class_idx;
-      scan_ptr->probs[packet_num][class_idx] = scan_msg.data.at(prob_idx);
+      int prob_idx = pred_start_idx + point_id*pred_packet_sz + class_idx;
+      // std::cout << "prob idx " << prob_idx << '\n';
+
+      scan_ptr->probs[point_id][class_idx] = scan_msg.data.at(prob_idx);
     }
   }
 
@@ -154,15 +162,16 @@ int main(int argc, char **argv) {
     semantic_kitti_data.read_lidar_poses(dir + '/' + lidar_pose_file);
     semantic_kitti_data.set_up_evaluation(dir + '/' + gt_label_prefix, dir + '/' + evaluation_result_prefix);
 
-    while (1) {
+    while (ros::ok()) {
       if (!scans_q.empty()) {
         std::shared_ptr<PointXYZProbs> scan = scans_q.front();
-        scans_q.pop();
         std::string input_data_dir = dir + '/' + input_data_prefix;
+        std::cout << "Entering process scan " << '\n';
         semantic_kitti_data.process_scan(scan, input_data_dir, query, visualize);
-        std::cout << "after while loop" << std::endl;
+        scans_q.pop();
+        std::cout << "after while loop" << '\n';
       }
-      ros::spin();
+      ros::spinOnce();
     }
     return 0;
 }

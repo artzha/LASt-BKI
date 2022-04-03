@@ -1,7 +1,7 @@
 # semantickitti_04 config
 
 # Map information
-resolution: 0.5 # 0.3 before
+resolution: 0.3
 num_class: 11 # Number of classes
 
 # Sampling resolutions
