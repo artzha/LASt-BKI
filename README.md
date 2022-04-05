@@ -22,12 +22,6 @@ catkin_ws$ catkin_make -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc
 catkin_ws$ source ~/catkin_ws/devel/setup.bash
 ```
 
-### Running the Demo
-
-```bash
-$ roslaunch semantic_bki toy_example_node.launch
-```
-
 ## Semantic Mapping using SemanticKITTI dataset
 
 ### Download Data
@@ -35,7 +29,7 @@ Please download [semantickitti_04](https://drive.google.com/file/d/19Dv1jQqf-VGK
 
 ### Running
 ```bash
-$ roslaunch semantic_bki semantickitti_node.launch
+$ roslaunch semantic_bki carla_node.launch
 ```
 You will see semantic map in RViz. It also query each ground truth point for evaluation, stored at data/semantickitti_04/evaluations.
 
