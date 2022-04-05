@@ -166,10 +166,10 @@ int main(int argc, char **argv) {
       if (!scans_q.empty()) {
         std::shared_ptr<PointXYZProbs> scan = scans_q.front();
         std::string input_data_dir = dir + '/' + input_data_prefix;
-        std::cout << "Entering process scan " << '\n';
+        // std::cout << "Entering process scan " << '\n';
         semantic_kitti_data.process_scan(scan, input_data_dir, query, visualize);
         scans_q.pop();
-        std::cout << "after while loop" << '\n';
+        // std::cout << "after while loop" << '\n';
       }
       ros::spinOnce();
     }
