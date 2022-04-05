@@ -64,6 +64,7 @@ class SemanticKITTIData {
     } 
 
     bool process_scan(std::shared_ptr<PointXYZProbs> scan, std::string input_data_dir, bool query, bool visualize) {
+      static bool hasSetOrigin = false;
       semantic_bki::point3f origin;
       int scan_id = scan->frame_id;
 
@@ -92,13 +93,35 @@ class SemanticKITTIData {
                       -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
                         0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
                         0                ,  0                ,  0                ,  1.000000000000000;
-      
-      Eigen::Matrix4d new_transform = init_trans_to_ground_ * transform * calibration;
+
+      // Transpose 
+      // std::swap(transform(0, 1), transform(1, 0));
+      // std::swap(transform(0, 2), transform(2, 0));
+      // std::swap(transform(2, 1), transform(1, 2));
+      // std::cout << transform << '\n';
+      // transform.block(0, 0, 3, 3).transposeInPlace();
+      // std::cout << transform << '\n';
+
+      // Compute inverse for translation
+      // transform.block(0, 3, 3, 1) = -transform.block(0, 0, 3, 3) * transform.block(0, 3, 3, 1);// + transform.block(0, 3, 3, 1);
+      // std::cout << transform << '\n';
+
+      // for (int i = 0; i < 3; ++i) {
+      //   transform(i, 3) *= -1;
+      // }
+
+      Eigen::Matrix4d new_transform = transform;//init_trans_to_ground_ * transform * calibration;
       std::cout << "Transforming point cloud\n";
+      std::cout << "before point 1 x " << cloud.begin()->x <<" y" << cloud.begin()->y  << " z " << cloud.begin()->z << '\n';
       pcl::transformPointCloud (cloud, cloud, new_transform);
+      std::cout << "after point 1 x " << cloud.begin()->x <<" y" << cloud.begin()->y << " z " << cloud.begin()->z << '\n';
+      // if (!hasSetOrigin) {
       origin.x() = transform(0, 3);
       origin.y() = transform(1, 3);
       origin.z() = transform(2, 3);
+      //   std::cout << "x " << origin.x() << " y " << origin.y() << " z " << origin.z() << '\n';
+      //   hasSetOrigin = true;
+      // }
       std::cout << "Inserting point cloud\n";
       map_->insert_pointcloud(scan, origin, ds_resolution_, free_resolution_, max_range_);
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
@@ -158,9 +181,15 @@ class SemanticKITTIData {
                       -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
                        0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
                        0                ,  0                ,  0                ,  1.000000000000000;
+
+      // transform.block(0, 0, 3, 3).transposeInPlace();
+      // // std::cout << transform << '\n';
+
+      // Compute inverse for translation
+      // transform.block(0, 3, 3, 1) = -transform.block(0, 0, 3, 3) * transform.block(0, 3, 3, 1);
       
-      Eigen::Matrix4d new_transform = transform * calibration;
-      pcl::transformPointCloud (cloud, cloud, new_transform);
+      // Eigen::Matrix4d new_transform = transform; //init_trans_to_ground_ * transform * calibration;
+      // pcl::transformPointCloud (cloud, cloud, new_transform);
 
       std::ofstream result_file;
       result_file.open(result_name);

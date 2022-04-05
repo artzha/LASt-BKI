@@ -247,6 +247,8 @@ namespace semantic_bki {
 
         point3f lim_min, lim_max;
         bbox(xy, lim_min, lim_max);
+        // std::cout << "lim min x: " << lim_min.x() << " y: " << lim_min.y() << " z " << lim_min.z() << "\n";
+        // std::cout << "lim max x: " << lim_max.x() << " y: " << lim_max.y() << " z " << lim_max.z() << "\n";
 
         vector<BlockHashKey> blocks;
         get_blocks_in_bbox(lim_min, lim_max, blocks);
@@ -396,7 +398,10 @@ namespace semantic_bki {
         frees.width = 0;
         xy.clear();
         for (auto it = cloud.begin(); it != cloud.end(); ++it) {
-            point3f p(it->x, it->y, it->z);
+            point3f p(
+                it->x, 
+                it->y, 
+                it->z);
             if (max_range > 0) {
                 double l = (p - origin).norm();
                 if (l > max_range)
