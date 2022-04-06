@@ -137,19 +137,6 @@ set(MAPPING_SOURCE_FILES
     src/mapping/bkioctree_node.cpp
     src/mapping/bkioctree.cpp)
 
-
-# add_executable(toy_example_node
-#   ${MAPPING_SOURCE_FILES}
-#   ${COMMON_SOURCE_FILES}
-#   src/toy_example_node.cpp
-# )
-
-# add_executable(kitti_node
-#   ${MAPPING_SOURCE_FILES}
-#   ${COMMON_SOURCE_FILES}
-#   src/kitti_node.cpp
-# )
-
 add_executable(semantickitti_node
   ${MAPPING_SOURCE_FILES}
   ${COMMON_SOURCE_FILES}
@@ -161,15 +148,6 @@ add_executable(semantickitti_node
 # add_dependencies(BGKOctoMap_node BGKOctoMap_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
-
-# target_link_libraries(toy_example_node
-#   ${catkin_LIBRARIES}
-# )
-
-# target_link_libraries(kitti_node
-#   ${catkin_LIBRARIES}
-#   ${OpenCV_LIBRARIES}
-# )
 
 target_link_libraries(semantickitti_node
   ${catkin_LIBRARIES}

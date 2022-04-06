@@ -73,8 +73,8 @@ class SemanticKITTIData {
       std::string scan_name = std::string(scan_id_c) + ".bin";
 
       pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
-      Eigen::Matrix4d transform = lidar_poses_[scan_id];
-      Eigen::Matrix4d calibration;
+      Eigen::Matrix4d ego_pose = lidar_poses_[scan_id];
+      // Eigen::Matrix4d calibration;
       
       // 00-02: 2011_10_03_drive
       //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
@@ -89,39 +89,19 @@ class SemanticKITTIData {
       //               0                ,  0                ,  0                ,  1.000000000000000;
 
       // 04-10: 2011_09_30_drive
-      calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
-                      -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
-                        0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
-                        0                ,  0                ,  0                ,  1.000000000000000;
+      // calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
+      //                 -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
+      //                   0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
+      //                   0                ,  0                ,  0                ,  1.000000000000000;
 
-      // Transpose 
-      // std::swap(transform(0, 1), transform(1, 0));
-      // std::swap(transform(0, 2), transform(2, 0));
-      // std::swap(transform(2, 1), transform(1, 2));
-      // std::cout << transform << '\n';
-      // transform.block(0, 0, 3, 3).transposeInPlace();
-      // std::cout << transform << '\n';
+      // Eigen::Matrix4d new_transform = transform;//init_trans_to_ground_ * transform * calibration;
+      // std::cout << "Transforming point cloud\n";
+      // pcl::transformPointCloud (cloud, cloud, new_transform); TODO: Check if this is needed
 
-      // Compute inverse for translation
-      // transform.block(0, 3, 3, 1) = -transform.block(0, 0, 3, 3) * transform.block(0, 3, 3, 1);// + transform.block(0, 3, 3, 1);
-      // std::cout << transform << '\n';
+      origin.x() = ego_pose(0, 3);
+      origin.y() = ego_pose(1, 3);
+      origin.z() = ego_pose(2, 3);
 
-      // for (int i = 0; i < 3; ++i) {
-      //   transform(i, 3) *= -1;
-      // }
-
-      Eigen::Matrix4d new_transform = transform;//init_trans_to_ground_ * transform * calibration;
-      std::cout << "Transforming point cloud\n";
-      std::cout << "before point 1 x " << cloud.begin()->x <<" y" << cloud.begin()->y  << " z " << cloud.begin()->z << '\n';
-      pcl::transformPointCloud (cloud, cloud, new_transform);
-      std::cout << "after point 1 x " << cloud.begin()->x <<" y" << cloud.begin()->y << " z " << cloud.begin()->z << '\n';
-      // if (!hasSetOrigin) {
-      origin.x() = transform(0, 3);
-      origin.y() = transform(1, 3);
-      origin.z() = transform(2, 3);
-      //   std::cout << "x " << origin.x() << " y " << origin.y() << " z " << origin.z() << '\n';
-      //   hasSetOrigin = true;
-      // }
       std::cout << "Inserting point cloud\n";
       map_->insert_pointcloud(scan, origin, ds_resolution_, free_resolution_, max_range_);
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
@@ -161,8 +141,8 @@ class SemanticKITTIData {
       std::string gt_name = gt_label_dir_ + std::string(scan_id_c) + ".label";
       std::string result_name = evaluation_result_dir_ + std::string(scan_id_c) + ".txt";
       pcl::PointCloud<pcl::PointXYZ>& cloud = scan->pc;
-      Eigen::Matrix4d transform = lidar_poses_[scan_id];
-      Eigen::Matrix4d calibration;
+      Eigen::Matrix4d ego_pose = lidar_poses_[scan_id];
+      // Eigen::Matrix4d calibration;
       
       // 00-02: 2011_10_03_drive
       //calibration << 0.000427680238558, -0.999967248494602, -0.008084491683471, -0.011984599277133,
@@ -177,10 +157,10 @@ class SemanticKITTIData {
       //               0                ,  0                ,  0                ,  1.000000000000000;
 
       // 04-10: 2011_09_30_drive
-      calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
-                      -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
-                       0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
-                       0                ,  0                ,  0                ,  1.000000000000000;
+      // calibration <<  -0.001857739385241, -0.999965951350955, -0.008039975204516, -0.004784029760483,
+      //                 -0.006481465826011,  0.008051860151134, -0.999946608177406, -0.073374294642306,
+      //                  0.999977309828677, -0.001805528627661, -0.006496203536139, -0.333996806443304,
+      //                  0                ,  0                ,  0                ,  1.000000000000000;
 
       // transform.block(0, 0, 3, 3).transposeInPlace();
       // // std::cout << transform << '\n';
