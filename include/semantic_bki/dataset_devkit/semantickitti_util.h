@@ -180,12 +180,13 @@ class SemanticKITTIData {
 	        pred_label = node.get_semantics();
         }
 
-        int most_likely_class = std::distance(
-          scan->probs[i].begin(), 
-          std::max_element(scan->probs[i].begin(), 
-          scan->probs[i].end())
-        );
-        result_file << most_likely_class << " " << pred_label << "\n";
+        // Not useful now since we have more accurate GT labels from carla
+        // int most_likely_class = std::distance(
+        //   scan->probs[i].begin(), 
+        //   std::max_element(scan->probs[i].begin(), 
+        //   scan->probs[i].end())
+        // );
+        result_file << pred_label << "\n";
       }
       result_file.close();
     }

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(semantic_bki)
+project(nn_semantic_bki)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -O3")
 
@@ -137,10 +137,10 @@ set(MAPPING_SOURCE_FILES
     src/mapping/bkioctree_node.cpp
     src/mapping/bkioctree.cpp)
 
-add_executable(semantickitti_node
+add_executable(carla_node
   ${MAPPING_SOURCE_FILES}
   ${COMMON_SOURCE_FILES}
-  src/semantickitti_node.cpp
+  src/carla_node.cpp
 )
 
 ## Add cmake target dependencies of the executable/library
@@ -149,7 +149,7 @@ add_executable(semantickitti_node
 
 ## Specify libraries to link a library or executable target against
 
-target_link_libraries(semantickitti_node
+target_link_libraries(carla_node
   ${catkin_LIBRARIES}
   ${OpenCV_LIBRARIES}
 )
