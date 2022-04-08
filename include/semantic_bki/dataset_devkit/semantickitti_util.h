@@ -64,7 +64,6 @@ class SemanticKITTIData {
     } 
 
     bool process_scan(std::shared_ptr<PointXYZProbs> scan, std::string input_data_dir, bool query, bool visualize) {
-      static bool hasSetOrigin = false;
       semantic_bki::point3f origin;
       int scan_id = scan->frame_id;
 
@@ -107,8 +106,7 @@ class SemanticKITTIData {
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
       
       if (query) {
-        for (int query_id = scan_id - 10; query_id >= 0 && query_id <= scan_id; ++query_id)
-          query_scan(scan, input_data_dir, query_id);
+        query_scan(scan, input_data_dir, query_id);
       }
       
       if (visualize)
