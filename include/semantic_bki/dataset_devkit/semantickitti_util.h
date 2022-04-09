@@ -106,7 +106,7 @@ class SemanticKITTIData {
       std::cout << "Inserted point cloud at " << scan_name << std::endl;
       
       if (query) {
-        query_scan(scan, input_data_dir, query_id);
+        query_scan(scan, input_data_dir, scan_id);
       }
       
       if (visualize)
