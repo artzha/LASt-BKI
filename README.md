@@ -1,8 +1,8 @@
-# BKI Neural Network
+# Learning Aided Semantic Bayesian Kernel Inference
 
 This work extends Lu et. al's original paper on Semantic BKI to operate in dynamic environments.
 
-![BKI Original](./github/bki_original.png)
+![BKI Original](./github/take2.png)
 
 ## Getting Started
 
@@ -12,7 +12,7 @@ This work extends Lu et. al's original paper on Semantic BKI to operate in dynam
 catkin_ws/src$ git clone git@github.com:KingArthurZ3/BKINeuralNet.git
 catkin_ws/src$ cd ..
 catkin_ws$ catkin_make
-catkin_ws$ source ~/catkin_ws/devel/setup.bash
+catkin_ws$ source ./catkin_ws/devel/setup.bash
 ```
 
 ### Building using Intel C++ compiler (optional for better speed performance)
@@ -22,26 +22,26 @@ catkin_ws$ catkin_make -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc
 catkin_ws$ source ~/catkin_ws/devel/setup.bash
 ```
 
-### Running the Demo
-
-```bash
-$ roslaunch semantic_bki toy_example_node.launch
-```
-
-## Semantic Mapping using SemanticKITTI dataset
+## Semantic Mapping using CarlaSC dataset
 
 ### Download Data
-Please download [semantickitti_04](https://drive.google.com/file/d/19Dv1jQqf-VGKS2qvbygFlUzQoSvu17E5/view?usp=sharing) and uncompress it into the data folder.
+Please download the Town10Heavy scene from [MotionSC_11](https://drive.google.com/drive/folders/1_Mom2vipQi3XoOtBoBYlQa_Pelf9rorR?usp=sharing) and uncompress it into the data folder. Rename the directory to `carla_townheavy`. These are predictions from the pretrained Neural Network MotionSC on CarlaSC.
 
-### Running
+### Running Rviz and BKI Layer
+
+You will see an empty semantic map in RViz. Prepend the ros topic for the map (should be of type MarkerArray) with the ros node name `/carla_node/`
 ```bash
-$ roslaunch semantic_bki semantickitti_node.launch
+catkin_ws$ roslaunch semantic_bki carla_node.launch
 ```
-You will see semantic map in RViz. It also query each ground truth point for evaluation, stored at data/semantickitti_04/evaluations.
+
+### Publishing MotionSC predictions for incoming point clouds
+```
+catkin_ws/src/BKINeuralNetwork$ cd ./data
+catkin_ws/src/BKINeuralNetwork$ python3 publisher.py
+```
 
 ### Evaluation
-Evaluation code is provided in semantickitti_evaluation.ipynb. You may modify the directory names to run it, or follow the guideline in [semantic-kitti-api](https://github.com/PRBonn/semantic-kitti-api) for evaluation.
-
+Evaluation code is provided in `carla_benchmarking.ipynb`. You may modify the directory names to run it. Note: this file was originally run on google colab, users who run evaluations locally can simply replace google drive filepaths with local filepaths.
 
 ## Relevant Publications
 
