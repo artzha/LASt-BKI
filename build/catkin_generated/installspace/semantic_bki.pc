@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: semantic_bki
+Description: Description of semantic_bki
+Version: 0.0.1
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: 

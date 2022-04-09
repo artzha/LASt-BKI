@@ -14,32 +14,33 @@ namespace semantic_bki {
     float Semantics::free_thresh = 0.3f;
     float Semantics::occupied_thresh = 0.7f;
 
-    void Semantics::get_probs(std::vector<float>& probs) const {
+    void Semantics::get_probs(std::vector<float>& probs, int N) const {
       assert (probs.size() == num_class);
       float sum = 0;
       for (auto m : ms)
         sum += m;
       for (int i = 0; i < num_class; ++i)
-        probs[i] = ms[i] / sum;
+        probs[i] = ms[i] * N / sum;
     }
 
-    void Semantics::get_vars(std::vector<float>& vars) const {
+    void Semantics::get_vars(std::vector<float>& vars, int N) const {
       assert (vars.size() == num_class);
       float sum = 0;
       for (auto m : ms)
         sum += m;
       for (int i = 0; i < num_class; ++i)
-        vars[i] = ((ms[i] / sum) - (ms[i] / sum) * (ms[i] / sum)) / (sum + 1);
+        vars[i] = N * (ms[i] / sum) * (1 - ms[i] / sum) * (N + sum) / (1 +  sum);
+        // vars[i] = ((ms[i] / sum) - (ms[i] / sum) * (ms[i] / sum)) / (sum + 1);
     }
 
-    void Semantics::update(std::vector<float>& ybars) {
+    void Semantics::update(std::vector<float>& ybars, int N) {
       assert(ybars.size() == num_class);
       classified = true;
       for (int i = 0; i < num_class; ++i)
         ms[i] += ybars[i];
 
       std::vector<float> probs(num_class);
-      get_probs(probs);
+      get_probs(probs, N);
 
       semantics = std::distance(probs.begin(), std::max_element(probs.begin(), probs.end()));
 

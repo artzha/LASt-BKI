@@ -1,0 +1,22 @@
+<launch>
+    <arg name="pkg" default="$(find nn_semantic_bki)" />
+    <arg name="method" default="nn_semantic_bki"/>
+    <arg name="dataset" default="carla"/>
+   
+    <arg name="method_config" value="$(arg pkg)/config/methods" />
+    <arg name="data_config" value="$(arg pkg)/config/datasets/" />
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find nn_semantic_bki)/rviz/carla_node.rviz" />
+    <node pkg="nn_semantic_bki" type="carla_node" name="carla_node" output="screen">
+
+        <param name="dir" value="$(arg pkg)/data/$(arg dataset)_townheavy" />
+
+        <!-- Load method configuration from file -->
+        <rosparam file="$(arg method_config)/$(arg method).yaml" command="load" />
+
+        <!-- Load dataset configuration from file -->
+        <rosparam file="$(arg data_config)/$(arg dataset).yaml" command="load" />
+        
+    </node>
+
+</launch>

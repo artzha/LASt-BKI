@@ -1,0 +1,8 @@
+prefix=/home/arthur/Documents/EECS 568/FinalProject/test_repos/catkin_ws/src/BKINeuralNet/build/devel
+
+Name: semantic_bki
+Description: Description of semantic_bki
+Version: 0.0.1
+Cflags: -I/home/arthur/Documents/EECS 568/FinalProject/test_repos/catkin_ws/src/BKINeuralNet/include
+Libs: -L${prefix}/lib 
+Requires: 
