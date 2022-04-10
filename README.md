@@ -86,3 +86,6 @@ Learning-Aided 3-D Occupancy Mapping with Bayesian Generalized Kernel Inference 
   journal = {{IEEE} Transactions on Robotics}
 }
 ```
+### Acknowledgements
+
+The work was supported by the University of Michigan, Ann Arbor EECS, Naval Architecture, and Robotics departments. Special thanks to Professor Maani Ghaffari and the ROB 530 course staff for their guidance.
