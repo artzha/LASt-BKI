@@ -29,6 +29,7 @@ catkin_ws$ source ~/catkin_ws/devel/setup.bash
 
 Please download the Town10Heavy scene from [MotionSC_11](https://drive.google.com/drive/folders/1_Mom2vipQi3XoOtBoBYlQa_Pelf9rorR?usp=sharing) and uncompress it into the data folder. 
 Rename the directory to `carla_townheavy`. These are predictions from the pretrained Neural Network MotionSC on CarlaSC.
+For more information about CarlaSC, please refer to [CarlaSC](https://umich-curly.github.io/CarlaSC.github.io/).
 
 
 
